@@ -1,0 +1,224 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Quelldateien">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headerdateien">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Ressourcendateien">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Quelldateien\common">
+      <UniqueIdentifier>{d41d8aed-aede-424f-975e-fa2e07fff306}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\common\shaders">
+      <UniqueIdentifier>{4ede7963-9835-4910-b851-e1081dc35ba4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\imgui">
+      <UniqueIdentifier>{b7b8de54-9c94-497e-a4c2-5fbd21a3cedf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\imgui">
+      <UniqueIdentifier>{4c963ace-2a92-4898-a200-673d34506ef7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\DualContouring">
+      <UniqueIdentifier>{53b68cb2-aad3-4634-95d4-0552215f9bd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\DualContouring">
+      <UniqueIdentifier>{4a65be94-2ec8-44cf-ac59-6a46edf74f31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\Eigen">
+      <UniqueIdentifier>{55f9f7ce-e585-4704-8676-bdac5539fb2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\common">
+      <UniqueIdentifier>{5c355b6c-3dbc-4974-8d88-dcf9bd02789e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="common\controls.cpp">
+      <Filter>Quelldateien\common</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_impl_glfw.cpp">
+      <Filter>Quelldateien\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_impl_opengl3.cpp">
+      <Filter>Quelldateien\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_tables.cpp">
+      <Filter>Quelldateien\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_widgets.cpp">
+      <Filter>Quelldateien\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui.cpp">
+      <Filter>Quelldateien\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_demo.cpp">
+      <Filter>Quelldateien\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_draw.cpp">
+      <Filter>Quelldateien\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="DualContouring.cpp">
+      <Filter>Quelldateien\DualContouring</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="common\shaders\simpleVertexShader.glsl">
+      <Filter>Quelldateien\common\shaders</Filter>
+    </None>
+    <None Include="common\shaders\simpleFragmentShader.glsl">
+      <Filter>Quelldateien\common\shaders</Filter>
+    </None>
+    <None Include="include\Eigen\Dense">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Eigen">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Eigenvalues">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Geometry">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Householder">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\IterativeLinearSolvers">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Jacobi">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\KLUSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\LU">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\MetisSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\OrderingMethods">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\PardisoSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\PaStiXSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\QR">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\QtAlignedMalloc">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Sparse">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\SparseCholesky">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\SparseCore">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\SparseLU">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\SparseQR">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\SPQRSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\StdDeque">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\StdList">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\StdVector">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\SuperLUSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\SVD">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\UmfPackSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Cholesky">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\CholmodSupport">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="include\Eigen\Core">
+      <Filter>Headerdateien\Eigen</Filter>
+    </None>
+    <None Include="common\shaders\wireframeFragmentShader.glsl">
+      <Filter>Quelldateien\common\shaders</Filter>
+    </None>
+    <None Include="common\shaders\wireframeGeometryShader.glsl">
+      <Filter>Quelldateien\common\shaders</Filter>
+    </None>
+    <None Include="common\shaders\wireframeVertexShader.glsl">
+      <Filter>Quelldateien\common\shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="standardShapes.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="common\loadShader.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui_internal.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imstb_rectpack.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imstb_textedit.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imstb_truetype.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imconfig.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui_impl_glfw.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui_impl_opengl3.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>Headerdateien\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="DualContouring.h">
+      <Filter>Headerdateien\DualContouring</Filter>
+    </ClInclude>
+    <ClInclude Include="common\standardShapes.h">
+      <Filter>Headerdateien\common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\controls.h">
+      <Filter>Headerdateien\common</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
