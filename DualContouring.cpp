@@ -14,19 +14,30 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<unsigned int>
     return std::make_tuple(_vertexBuffer, _colorBuffer, _triangles);
 }
 
+//double DualContouring::sdf(Eigen::Vector3d pos)
+//{
+//    double x = pos.x() - _dimensions.x() / 2.0;
+//    double y = pos.y() - _dimensions.y() / 2.0;
+//    double z = pos.z() - _dimensions.z() / 2.0;
+//    double result = 20.0f - sqrt(x*x+y*y+z*z);
+//    return result;
+//}
+
 double DualContouring::sdf(Eigen::Vector3d pos)
 {
+    double radius = 20;
+    double height = 10;
     double x = pos.x() - _dimensions.x() / 2.0;
     double y = pos.y() - _dimensions.y() / 2.0;
     double z = pos.z() - _dimensions.z() / 2.0;
-    double result = 30.0f - sqrt(x*x+y*y+z*z);
-    //double result = z;
+    double d = sqrt(x * x + z * z) - radius;
+    double result = std::max(d, abs(y) - height);
     return result;
 }
 
 Eigen::Vector3d DualContouring::getNormalFromGradient(Eigen::Vector3d pos, Eigen::Vector3d& normal)
 {
-    const double c = 0.1;
+    const double c = 0.01;
     Eigen::Vector3d offset;
 
     offset = { c,0,0 };
@@ -48,7 +59,13 @@ unsigned int DualContouring::toMapIndex(Eigen::Vector3i voxelIndex)
 
 float DualContouring::findZero(float a, float b)
 {
-    return (0.0f - a)/(b - a);
+    return a / (a - b);
+}
+
+Eigen::Vector3d DualContouring::findZeroCrossing(Eigen::Vector3d p1, Eigen::Vector3d p2, double v1, double v2) {
+    double ratio = v1 / (v1 - v2);
+    Eigen::Vector3d zeroCrossing = p1 + ratio * (p2 - p1);
+    return zeroCrossing;
 }
 
 void DualContouring::fillBuffers()
@@ -132,7 +149,7 @@ void DualContouring::createFaces()
                 if (directions == "")
                     continue;
 
-                createFace(voxelIndex, directions, !isInside);
+                createFace(voxelIndex, directions, isInside);
             }
         }
     }
@@ -268,20 +285,30 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
             pos = voxelIndex.cast<double>();
             offsetStart = { 0, double(y), double(z) };
             offsetEnd = { 1.0, double(y), double(z) };
-            //offsetStart *= maxOffset;
-            //offsetEnd *= maxOffset;
-            startBuffer = sdf(pos + offsetStart);
-            endBuffer = sdf(pos + offsetEnd);
+
+            auto p1 = pos + offsetStart;
+            auto p2 = pos + offsetEnd;
+
+            startBuffer = sdf(p1);
+            endBuffer = sdf(p2);
 
             if ((startBuffer > 0) != (endBuffer > 0))
             {
-                double offsetToZero = findZero(startBuffer, endBuffer);
+                //double offsetToZero = findZero(startBuffer, endBuffer);
+                //auto dif = offsetEnd - offsetStart;
+                //auto crossingPoint = pos + dif * offsetToZero;
+                auto crossingPoint = findZeroCrossing(p1, p2, startBuffer, endBuffer);
+                voxel.edges[y * 2 + z].point = crossingPoint;
+                voxel.edges[y * 2 + z].valid = true;
+                getNormalFromGradient(crossingPoint, voxel.edges[y * 2 + z].normal);
+
+                //std::array<double, 3> zeroCrossing = { p1[0] + ratio * (p2[0] - p1[0]),
+                //                                      p1[1] + ratio * (p2[1] - p1[1]),
+                //                                      p1[2] + ratio * (p2[2] - p1[2]) };
                 //std::cout << "value start: " << startBuffer << std::endl;
                 //std::cout << "value end: " << endBuffer << std::endl;
                 //std::cout << "offset to zero: " << offsetToZero << std::endl;
-                voxel.edges[y * 2 + z].point = pos + Eigen::Vector3d(offsetToZero, double(y), double(z));
-                voxel.edges[y * 2 + z].valid = true;
-                getNormalFromGradient(pos + Eigen::Vector3d(offsetToZero, double(y), double(z)), voxel.edges[y * 2 + z].normal);
+                //voxel.edges[y * 2 + z].point = pos + Eigen::Vector3d(offsetToZero, double(y), double(z));
             }
 
             // fill voxel corners and signs
@@ -299,17 +326,23 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
             pos = voxelIndex.cast<double>();
             offsetStart = { double(x), 0.0, double(z) };
             offsetEnd = { double(x), 1.0, double(z) };
-            //offsetStart *= maxOffset;
-            //offsetEnd *= maxOffset;
-            startBuffer = sdf(pos + offsetStart);
-            endBuffer = sdf(pos + offsetEnd);
+
+            auto p1 = pos + offsetStart;
+            auto p2 = pos + offsetEnd;
+
+            startBuffer = sdf(p1);
+            endBuffer = sdf(p2);
 
             if ((startBuffer > 0) != (endBuffer > 0))
             {
-                double offsetToZero = findZero(startBuffer, endBuffer);
-                voxel.edges[4 + x * 2 + z].point = pos + Eigen::Vector3d(double(x), offsetToZero, double(z));
+                auto crossingPoint = findZeroCrossing(p1, p2, startBuffer, endBuffer);
+                voxel.edges[4 + x * 2 + z].point = crossingPoint;
                 voxel.edges[4 + x * 2 + z].valid = true;
-                getNormalFromGradient(pos + Eigen::Vector3d(double(x), offsetToZero, double(z)), voxel.edges[4 + x * 2 + z].normal);
+                getNormalFromGradient(crossingPoint, voxel.edges[4 + x * 2 + z].normal);
+                //double offsetToZero = findZero(startBuffer, endBuffer);
+                //voxel.edges[4 + x * 2 + z].point = pos + Eigen::Vector3d(double(x), offsetToZero, double(z));
+                //voxel.edges[4 + x * 2 + z].valid = true;
+                //getNormalFromGradient(pos + Eigen::Vector3d(double(x), offsetToZero, double(z)), voxel.edges[4 + x * 2 + z].normal);
             }
 
             // fill voxel corners and signs
@@ -329,17 +362,23 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
             pos = voxelIndex.cast<double>();
             offsetStart = { double(x), double(y), 0.0 };
             offsetEnd = { double(x), double(y), 1.0 };
-            //offsetStart *= maxOffset;
-            //offsetEnd *= maxOffset;
-            startBuffer = sdf(pos + offsetStart);
-            endBuffer = sdf(pos + offsetEnd);
+
+            auto p1 = pos + offsetStart;
+            auto p2 = pos + offsetEnd;
+
+            startBuffer = sdf(p1);
+            endBuffer = sdf(p2);
 
             if ((startBuffer > 0) != (endBuffer > 0))
             {
-                double offsetToZero = findZero(startBuffer, endBuffer);
-                voxel.edges[8 + x * 2 + y].point = pos + Eigen::Vector3d(double(x), double(y), offsetToZero);
+                auto crossingPoint = findZeroCrossing(p1, p2, startBuffer, endBuffer);
+                voxel.edges[8 + x * 2 + y].point = crossingPoint;
                 voxel.edges[8 + x * 2 + y].valid = true;
-                getNormalFromGradient(pos + Eigen::Vector3d(double(x), double(y), offsetToZero), voxel.edges[8 + x * 2 + y].normal);
+                getNormalFromGradient(crossingPoint, voxel.edges[8 + x * 2 + y].normal);
+                //double offsetToZero = findZero(startBuffer, endBuffer);
+                //voxel.edges[8 + x * 2 + y].point = pos + Eigen::Vector3d(double(x), double(y), offsetToZero);
+                //voxel.edges[8 + x * 2 + y].valid = true;
+                //getNormalFromGradient(pos + Eigen::Vector3d(double(x), double(y), offsetToZero), voxel.edges[8 + x * 2 + y].normal);
             }
            /* if ((sdf(pos + offsetStart) > 0) != (sdf(pos + offsetEnd) > 0))
                 z = true;*/
@@ -385,7 +424,6 @@ void DualContouring::calculateQEF(std::vector<EdgeData> & edges, Eigen::MatrixXd
 
         // A is simply the stacked normals
         A.row(i) = n;
-        // 
         b[i] = p.x() * n.x() + p.y() * n.y() + p.z() * n.z();
 
         //std::cout << "Position: " << i << " :"
@@ -413,6 +451,7 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
     // find intersecting edges
     auto intersectingEdges = std::vector<EdgeData>();
     intersectingEdges.clear();
+
     //intersectingEdges.reserve(6);
     Eigen::Vector3d mean = Eigen::Vector3d::Zero();
     for (int i = 0; i < 12; ++i)
@@ -448,13 +487,15 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
     Eigen::MatrixXd A(intersectingEdges.size(), 3);
     Eigen::VectorXd b(intersectingEdges.size());
 
+    // replace with Schmitz Particle Approximation
+
     calculateQEF(intersectingEdges, A, b);
 
     // Solve the linear system Ax=b using Eigen's solver 
     result = A.fullPivHouseholderQr().solve(b);
     success = true;
 
-    if (similarity >= 1 - 1e-5)
+    if (similarity >= 1 - 1e-4)
     {
         //std::cout << "Similarity: " << similarity << " Edges: " << intersectingEdges.size() << std::endl;
         //for (auto& edge : intersectingEdges)
@@ -487,6 +528,11 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
     //auto& vertex  = result;
     //std::cout << vertex.x() - _dimensions.x() / 2.0f << " " << vertex.y() - _dimensions.y() / 2.0f << " " << vertex.z() - _dimensions.z() / 2.0f << std::endl;
     //std::cout << vertex.x() << " " << vertex.y() << " " << vertex.z() << std::endl;
+    //if (fabs(sdf(result)) > 0.015)
+    //{
+    //    std::cout << "Voxel with large distance: \n" << voxelIndex << std::endl;
+    //    //success = false;
+    //}
     clipPosition(voxelIndex, result);
 
     //Eigen::Vector3d result = voxelIndex.cast<double>();
@@ -501,17 +547,17 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
 
 void DualContouring::clipPosition(Eigen::Vector3i voxelIndex, Eigen::Vector3d& pos)
 {
-    if (voxelIndex.x() > (pos.x() + 0.5))
+    if (voxelIndex.x() > (pos.x() ))
         pos.x() = voxelIndex.x();
     else if ((voxelIndex.x() + 1) < pos.x())
         pos.x() = voxelIndex.x() + 1;
 
-    if (voxelIndex.y() > (pos.y() + 0.5))
+    if (voxelIndex.y() > (pos.y() ))
         pos.y() = voxelIndex.y();
     else if ((voxelIndex.y() + 1) < pos.y())
         pos.y() = voxelIndex.y() + 1;
 
-    if (voxelIndex.z() > (pos.z() + 0.5))
+    if (voxelIndex.z() > (pos.z() ))
         pos.z() = voxelIndex.z();
     else if ((voxelIndex.z() + 1) < pos.z())
         pos.z() = voxelIndex.z() + 1;

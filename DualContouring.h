@@ -47,6 +47,8 @@ private:
 	unsigned int toMapIndex(Eigen::Vector3i);
 	// find position of zero along a sign change
 	float findZero(float a, float b);
+	// Find the zero crossing along an edge
+	Eigen::Vector3d findZeroCrossing(Eigen::Vector3d, Eigen::Vector3d, double, double);
 	// fill vertex and color buffer
 	void fillBuffers();
 	// fill _vertices
@@ -60,7 +62,7 @@ private:
 	void CreateVoxelFromPosition(Eigen::Vector3i, Voxel& voxel);
 	// get zero crossings to make faces
 	std::tuple<bool, bool, bool> findZeroCrossings(Eigen::Vector3i);
-	// Create QEF matrix to solve for optimal vertex position in 
+	// Create QEF matrix to solve for optimal vertex position in voxel
 	void calculateQEF(std::vector<EdgeData> & edges, Eigen::MatrixXd & A, Eigen::VectorXd & b);
 	// Trinilearly interpolate forces of voxel corners
 	void getForceOnPoint(std::vector<Eigen::Vector3d>& cornerForces, Eigen::Vector3i& voxelIndex, Eigen::Vector3d& position);
@@ -80,12 +82,12 @@ public:
 	}
 
 	/**
-	* Performs dual contouring and fills the result vectors
+	Performs dual contouring and fills the result vectors
 	*/
 	void execute();
 	
 	/**
-	* Returns the opengl buffers for vertices, color and triangles
+	Returns the opengl buffers for vertices, color and triangles
 	*/
 	std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<unsigned int>> getData();
 };
