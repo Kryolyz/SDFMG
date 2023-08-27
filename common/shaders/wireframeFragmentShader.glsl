@@ -6,9 +6,6 @@ in vec3 dist;
 out vec4 FragColor;
 void main()
 {
-	// Undo perspective correction.      
-	//vec3 dist_vec = dist * gl_FragCoord.w;
-
 	// Wireframe rendering is better like this:
 	vec3 dist_vec = dist;
 
@@ -17,7 +14,8 @@ void main()
 
 	// Compute line intensity and then fragment color
 	float I = exp2(-2.0 * d * d);
+	float If = exp2(-3.0 * d * d);
 
-	FragColor.rgb = I * WIRE_COL + (1.0 - I) * FILL_COL;
+	FragColor.rgb = I * WIRE_COL + If * FILL_COL;
 	FragColor.a = I;
 }

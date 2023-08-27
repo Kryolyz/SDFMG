@@ -13,17 +13,17 @@ void main()
 	vec4 p2_3d = gl_in[2].gl_Position;
 
 	// Compute the vertex position in the usual fashion. 
-	p0_3d = MVP * p0_3d;
+	//p0_3d = MVP * p0_3d;
 	// 2D position
 	vec2 p0 = p0_3d.xy / p0_3d.w;
 
 	// Compute the vertex position in the usual fashion. 
-	p1_3d = MVP * p1_3d;
+	//p1_3d = MVP * p1_3d;
 	// 2D position
 	vec2 p1 = p1_3d.xy / p1_3d.w;
 
 	// Compute the vertex position in the usual fashion. 
-	p2_3d = MVP * p2_3d;
+	//p2_3d = MVP * p2_3d;
 	// 2D position
 	vec2 p2 = p2_3d.xy / p2_3d.w;
 

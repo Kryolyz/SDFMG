@@ -25,7 +25,8 @@ glm::mat4 getProjectionMatrix(){
 glm::vec3 position = glm::vec3( 0, 0, 0 ); 
 glm::vec3 _direction = glm::vec3(0, 0, 0);
 // Initial horizontal angle : toward -Z
-float horizontalAngle = 3.14f;
+float horizontalAngle = 3.14f / 2.0f;
+//float horizontalAngle = 0.0f;
 // Initial vertical angle : none
 float verticalAngle = 0.0f;
 // Initial Field of View
@@ -75,30 +76,32 @@ void computeMatricesFromInputs(GLFWwindow* window){
 	glm::vec3 up = glm::cross( right, direction );
 
 	// Move forward
-	if (glfwGetKey( window, GLFW_KEY_UP ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_W) == GLFW_PRESS){
 		position += direction * deltaTime * speed;
 	}
 	// Move backward
-	if (glfwGetKey( window, GLFW_KEY_DOWN ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_S) == GLFW_PRESS){
 		position -= direction * deltaTime * speed;
 	}
 	// Strafe right
-	if (glfwGetKey( window, GLFW_KEY_RIGHT ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_D) == GLFW_PRESS){
 		position += right * deltaTime * speed;
 	}
 	// Strafe left
-	if (glfwGetKey( window, GLFW_KEY_LEFT ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS){
 		position -= right * deltaTime * speed;
 	}
 
-	float FoV = initialFoV;// - 5 * glfwGetMouseWheel(); // Now GLFW 3 requires setting up a callback for this. It's a bit too complicated for this beginner's tutorial, so it's disabled instead.
+	float FoV = initialFoV;
 
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 	ProjectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, 0.1f, 300.0f);
+
+	//glm::normalize()
 	// Camera matrix
 	ViewMatrix       = glm::lookAt(
 								position - direction * viewDistance,           // Camera is here
-								position, // and looks here : at the same position, plus "direction"
+								position , // and looks here : at the same position, plus "direction"
 								up                  // Head is up (set to 0,-1,0 to look upside-down)
 						   );
 
@@ -110,6 +113,7 @@ void computeMatricesFromInputs(GLFWwindow* window){
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	std::cout << "View Distance : " << viewDistance << std::endl;
-	std::cout << "View Position: " << _direction.x << " " << _direction.y << " " << _direction.z << std::endl;
+	std::cout << "View Position: " << position.x << " " << position.y << " " << position.z << std::endl;
+	std::cout << "View Direction: " << _direction.x << " " << _direction.y << " " << _direction.z << std::endl;
 	viewDistance += yoffset;
 }

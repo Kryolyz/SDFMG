@@ -118,7 +118,8 @@ int IMGUImain(void)
 
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -179,7 +180,7 @@ int IMGUImain(void)
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -221,43 +222,45 @@ int main(void)
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetCursorPos(window, 1024 / 2, 768 / 2);
 
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Enable depth test
-    glEnable(GL_DEPTH_TEST);
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
-    // Only show front faces
-    glEnable(GL_CULL_FACE);
+    //glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_CULL_FACE);
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
-    //GLuint shaderProgramID = LoadShaders("common/shaders/simpleVertexShader.glsl", "common/shaders/simpleFragmentShader.glsl");
     GLuint shaderProgramID = LoadShaders(
         "common/shaders/WireFrameVertexShader.glsl", 
         "common/shaders/wireframeFragmentShader.glsl",
         "common/shaders/wireframeGeometryShader.glsl");
 
+    //GLuint shaderProgramID = LoadShaders("common/shaders/simpleVertexShader.glsl", "common/shaders/simpleFragmentShader.glsl");
     GLuint wireframeWireColor = glGetUniformLocation(shaderProgramID, "WIRE_COL");
     GLuint wireframeFillColor = glGetUniformLocation(shaderProgramID, "FILL_COL");
-
-    // Get a handle for our "MVP" uniform
-    GLuint MatrixID = glGetUniformLocation(shaderProgramID, "MVP");
 
     std::vector<GLfloat> g_vertex_buffer_data;
     std::vector<GLfloat> g_color_buffer_data;
     std::vector<unsigned int> triangle_buffer_data;
 
     // Make mesh
-    Eigen::Vector3i dims{ 200,200,200 };
-    DualContouring dualContouring{ dims };
+    Eigen::Vector3i dimensions{ 200, 200, 200 };
+    DualContouring dualContouring{ dimensions };
     dualContouring.execute();
     std::tie(g_vertex_buffer_data, g_color_buffer_data, triangle_buffer_data) = dualContouring.getData();
 
     std::cout << g_vertex_buffer_data.size() / 3 << " " << g_color_buffer_data.size() / 3 << " " << triangle_buffer_data.size() / 3 << std::endl;
-        
+    
+
+    GLint posAttrib = glGetAttribLocation(shaderProgramID, "vertexPosition_modelspace");
+    GLint colAttrib = glGetAttribLocation(shaderProgramID, "vertexColor");
+
+    std::cout << colAttrib << std::endl;
+
     // This will identify our vertex buffer
     GLuint vertexbuffer;
     glGenBuffers(1, &vertexbuffer);
@@ -279,34 +282,34 @@ int main(void)
     std::cout << "Processing finished, starting rendering" << std::endl;
 
     glUseProgram(shaderProgramID);
+
     glm::vec3 wireColor(1, 1, 1);
-    glUniform3f(wireframeWireColor, 1,1,1);
+    glUniform3f(wireframeWireColor, wireColor.x, wireColor.y, wireColor.z);
     glm::vec3 fillColor(0, 1, 0);
-    glUniform3f(wireframeFillColor, 0, 1, 0);
+    glUniform3f(wireframeFillColor, fillColor.x, fillColor.y, fillColor.z);
+
+    // Get a handle for our "MVP" uniform
+    GLuint MatrixID = glGetUniformLocation(shaderProgramID, "MVP");
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
+    //glEnable(GL_BLEND); 
 
-    do 
+    do
     {
-        // Clear the screen.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Compute the MVP matrix from keyboard and mouse input
         computeMatricesFromInputs(window);
         glm::mat4 ProjectionMatrix = getProjectionMatrix();
         glm::mat4 ViewMatrix = getViewMatrix();
         glm::mat4 ModelMatrix = glm::mat4(1.0);
-
         glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
         // 1st attribute buffer : vertices
-        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(posAttrib);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
-            0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+            posAttrib,          // attribute 0
             3,                  // size
             GL_FLOAT,           // type
             GL_FALSE,           // normalized?
@@ -315,10 +318,10 @@ int main(void)
         );
 
         // 2nd attribute buffer : colors
-        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(colAttrib);
         glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
         glVertexAttribPointer(
-            1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+            colAttrib,                        // attribute 1
             3,                                // size
             GL_FLOAT,                         // type
             GL_FALSE,                         // normalized?
@@ -329,10 +332,8 @@ int main(void)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
         glDrawElements(GL_TRIANGLES, triangle_buffer_data.size(), GL_UNSIGNED_INT, (void*)0);
 
-        //glDrawArrays(GL_TRIANGLES, 0, sizeof(g_vertex_buffer_data) / sizeof(float) / 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);  
+        glDisableVertexAttribArray(posAttrib);
+        glDisableVertexAttribArray(colAttrib);
 
         // Swap buffers
         glfwSwapBuffers(window);
