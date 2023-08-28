@@ -66,6 +66,8 @@ private:
 	void calculateQEF(std::vector<EdgeData> & edges, Eigen::MatrixXd & A, Eigen::VectorXd & b);
 	// Trinilearly interpolate forces of voxel corners
 	void getForceOnPoint(std::vector<Eigen::Vector3d>& cornerForces, Eigen::Vector3i& voxelIndex, Eigen::Vector3d& position);
+	// Perform Schmitz Particle Approximation to find optimal vertex position in voxel
+	Eigen::Vector3d schmitzParticleApproximation(Eigen::Vector3d& position, std::vector<EdgeData> intesectingEdges);
 	// Finds average position of surrouding voxels to fix a problematic position
 	Eigen::Vector3d averagePositionSurrouding(Eigen::Vector3i voxelIndex);
 	// get whether voxel contains vertex and if yes, get vertex position
