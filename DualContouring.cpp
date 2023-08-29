@@ -25,10 +25,10 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<unsigned int>
 
 //double DualContouring::sdf(Eigen::Vector3d pos)
 //{
-//    double radius = 20;
-//    double x = pos.x() - _dimensions.x() / 2.0;
-//    double y = pos.y() - _dimensions.y() / 2.0;
-//    double z = pos.z() - _dimensions.z() / 2.0;
+//    double radius = 43.8;
+//    double x = pos.x() - _dimensions.x() / 2.0 - 2.1;
+//    double y = pos.y() - _dimensions.y() / 2.0 + 1.3;
+//    double z = pos.z() - _dimensions.z() / 2.0 - 2.1;
 //    double result = sqrt(x * x + y * y + z * z) - radius;
 //    return result;
 //}
@@ -50,15 +50,15 @@ double DualContouring::sdf(Eigen::Vector3d pos)
 	double x = pos.x() - _dimensions.x() / 2.0;
 	double y = pos.y() - _dimensions.y() / 2.0;
 	double z = pos.z() - _dimensions.z() / 2.0;
-	float major = 30;
-	float minor = 3.5;
+	float major = 4;
+	float minor = 1.5;
 	Eigen::Vector2d q = Eigen::Vector2d(sqrt(x * x + z * z) - major, y);
 	return q.norm() - minor;
 }
 
-Eigen::Vector3d DualContouring::getNormalFromGradient(Eigen::Vector3d pos, Eigen::Vector3d& normal)
+void DualContouring::getNormalFromGradient(Eigen::Vector3d pos, Eigen::Vector3d& normal)
 {
-	const double c = 0.01;
+	const double c = 0.0001;
 	Eigen::Vector3d offset;
 
 	offset = { c,0,0 };
@@ -68,7 +68,6 @@ Eigen::Vector3d DualContouring::getNormalFromGradient(Eigen::Vector3d pos, Eigen
 	offset = { 0,0,c };
 	normal.z() = (sdf(pos + offset) - sdf(pos - offset)) / (2 * c);
 	normal.normalize();
-	return normal;
 }
 
 unsigned int DualContouring::toMapIndex(Eigen::Vector3i voxelIndex)
@@ -83,10 +82,26 @@ float DualContouring::findZero(float a, float b)
 	return a / (a - b);
 }
 
-Eigen::Vector3d DualContouring::findZeroCrossing(Eigen::Vector3d p1, Eigen::Vector3d p2, double v1, double v2) {
-	double ratio = v1 / (v1 - v2);
-	Eigen::Vector3d zeroCrossing = p1 + ratio * (p2 - p1);
-	return zeroCrossing;
+Eigen::Vector3d DualContouring::findZeroCrossing(Eigen::Vector3d p1, Eigen::Vector3d p2, double epsilon = 1e-6) {
+	double sdf1 = sdf(p1);
+	double sdf2 = sdf(p2);
+
+	while ((p2 - p1).norm() > epsilon) {
+		Eigen::Vector3d mid = (p1 + p2) / 2;
+		double sdfMid = sdf(mid);
+		if (sdfMid * sdf1 <= 0) {
+			p2 = mid;
+			sdf2 = sdfMid;
+		}
+		else {
+			p1 = mid;
+			sdf1 = sdfMid;
+		}
+	}
+	return (p1 + p2) / 2;
+	//double ratio = v1 / (v1 - v2);
+	//Eigen::Vector3d zeroCrossing = p1 + ratio * (p2 - p1);
+	//return zeroCrossing;
 }
 
 void DualContouring::fillBuffers()
@@ -129,13 +144,6 @@ void DualContouring::createVertices()
 		}
 	}
 }
-//if (vertex.x() < 1)
-//    std::cout << vertex.x() << std::endl;
-//const Eigen::Vector3d vertex = std::get<1>(buffer);
-	// - _dimensions.x() / 2.0f << " " << vertex.y() - _dimensions.y() / 2.0f << " " << vertex.z() - _dimensions.z() / 2.0f << std::endl;
-//std::cout << "index: " << toMapIndex(voxelIndex) << " position: "
-//  << vertex.x() << " " << vertex.y() << " " << vertex.z() 
-//    << " Vertex index: " << int(_vertices.size()) << std::endl;
 
 void DualContouring::createFaces()
 {
@@ -295,7 +303,7 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
 	double startBuffer = 0;
 	double endBuffer = 0;
 
-	const double maxOffset = 0.999;
+	const double maxOffset = 0.99999;
 
 	// fill voxel data
 	for (int y = 0; y <= 1; ++y)
@@ -304,7 +312,7 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
 		{
 			pos = voxelIndex.cast<double>();
 			offsetStart = { 0, double(y), double(z) };
-			offsetEnd = { 1.0, double(y), double(z) };
+			offsetEnd = { maxOffset, double(y), double(z) };
 
 			auto p1 = pos + offsetStart;
 			auto p2 = pos + offsetEnd;
@@ -314,7 +322,7 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
 
 			if ((startBuffer > 0) != (endBuffer > 0))
 			{
-				auto crossingPoint = findZeroCrossing(p1, p2, startBuffer, endBuffer);
+				auto crossingPoint = findZeroCrossing(p1, p2);
 				voxel.edges[y * 2 + z].point = crossingPoint;
 				voxel.edges[y * 2 + z].valid = true;
 				getNormalFromGradient(crossingPoint, voxel.edges[y * 2 + z].normal);
@@ -328,7 +336,7 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
 		{
 			pos = voxelIndex.cast<double>();
 			offsetStart = { double(x), 0.0, double(z) };
-			offsetEnd = { double(x), 1.0, double(z) };
+			offsetEnd = { double(x), maxOffset, double(z) };
 
 			auto p1 = pos + offsetStart;
 			auto p2 = pos + offsetEnd;
@@ -338,7 +346,7 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
 
 			if ((startBuffer > 0) != (endBuffer > 0))
 			{
-				auto crossingPoint = findZeroCrossing(p1, p2, startBuffer, endBuffer);
+				auto crossingPoint = findZeroCrossing(p1, p2);
 				voxel.edges[4 + x * 2 + z].point = crossingPoint;
 				voxel.edges[4 + x * 2 + z].valid = true;
 				getNormalFromGradient(crossingPoint, voxel.edges[4 + x * 2 + z].normal);
@@ -352,7 +360,7 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
 		{
 			pos = voxelIndex.cast<double>();
 			offsetStart = { double(x), double(y), 0.0 };
-			offsetEnd = { double(x), double(y), 1.0 };
+			offsetEnd = { double(x), double(y), maxOffset };
 
 			auto p1 = pos + offsetStart;
 			auto p2 = pos + offsetEnd;
@@ -362,7 +370,7 @@ void DualContouring::CreateVoxelFromPosition(Eigen::Vector3i voxelIndex, Voxel& 
 
 			if ((startBuffer > 0) != (endBuffer > 0))
 			{
-				auto crossingPoint = findZeroCrossing(p1, p2, startBuffer, endBuffer);
+				auto crossingPoint = findZeroCrossing(p1, p2);
 				voxel.edges[8 + x * 2 + y].point = crossingPoint;
 				voxel.edges[8 + x * 2 + y].valid = true;
 				getNormalFromGradient(crossingPoint, voxel.edges[8 + x * 2 + y].normal);
@@ -379,16 +387,17 @@ std::tuple<bool, bool, bool> DualContouring::findZeroCrossings(Eigen::Vector3i v
 	bool isInside = sdf(pos) > 0;
 
 	Eigen::Vector3d offset;
+	double maxOffset = 0.99999;
 
-	offset = { 1.0, 0, 0 };
+	offset = { maxOffset, 0, 0 };
 	if ((sdf(pos + offset) > 0) != isInside)
 		x = true;
 
-	offset = { 0, 1.0, 0 };
+	offset = { 0, maxOffset, 0 };
 	if ((sdf(pos + offset) > 0) != isInside)
 		y = true;
 
-	offset = { 0, 0, 1.0 };
+	offset = { 0, 0, maxOffset };
 	if ((sdf(pos + offset) > 0) != isInside)
 		z = true;
 
@@ -423,22 +432,124 @@ void DualContouring::calculateQEF(std::vector<EdgeData>& edges, Eigen::MatrixXd&
 	//std::cout << A << "\n  now b: \n" << b << std::endl;
 }
 
-void DualContouring::getForceOnPoint(std::vector<Eigen::Vector3d>& cornerForces, Eigen::Vector3i& voxelIndex, Eigen::Vector3d& position)
-{
-
-}
-
-Eigen::Vector3d DualContouring::schmitzParticleApproximation(Eigen::Vector3d& position, std::vector<EdgeData> intersectingEdges)
+Eigen::Vector3d DualContouring::getForceFromCorner(Eigen::Vector3d& cornerPosition, std::vector<EdgeData>& intersectingEdges)
 {
 	Eigen::Vector3d F = Eigen::Vector3d::Zero();
-	for (const auto& edge : intersectingEdges) 
+	for (const auto& edge : intersectingEdges)
 	{
-		Eigen::Vector3d p2e = position - edge.point;
-		double d = fabs(edge.normal.dot(p2e));
-		F += d * edge.normal;
+		Eigen::Vector3d p2e = edge.point - cornerPosition;
+		double d = edge.normal.normalized().dot(p2e);
+		F += d * edge.normal.normalized();
 	}
 	F *= 0.05;
-	return F;
+	return F / intersectingEdges.size();
+}
+
+Eigen::Vector3d DualContouring::trilinearInterpolation(const std::vector<Eigen::Vector3d>& forces, const Eigen::Vector3d& point)
+{
+	// Extract corner values
+    Eigen::Vector3d c000 = forces[0];
+    Eigen::Vector3d c001 = forces[1];
+    Eigen::Vector3d c010 = forces[2];
+    Eigen::Vector3d c011 = forces[3];
+    Eigen::Vector3d c100 = forces[4];
+    Eigen::Vector3d c101 = forces[5];
+    Eigen::Vector3d c110 = forces[6];
+    Eigen::Vector3d c111 = forces[7];
+
+	// Extract point position
+	double x = point[0];
+	double y = point[1];
+	double z = point[2];
+
+	// Perform trilinear interpolation
+	Eigen::Vector3d c0z = c000 * (1 - z) + c001 * z;
+	Eigen::Vector3d c1z = c010 * (1 - z) + c011 * z;
+	Eigen::Vector3d c2z = c100 * (1 - z) + c101 * z;
+	Eigen::Vector3d c3z = c110 * (1 - z) + c111 * z;
+
+	Eigen::Vector3d cx0z = c0z * (1 - x) + c2z * x;
+	Eigen::Vector3d cx1z = c1z * (1 - x) + c3z * x;
+
+	Eigen::Vector3d cxzy = cx0z * (1 - y) + cx1z * y;
+
+	return cxzy;
+}
+
+Eigen::Vector3d DualContouring::schmitzParticleApproximation(Eigen::Vector3d& voxelPosition, std::vector<EdgeData>& intersectingEdges)
+{
+	// Get starting point
+	Eigen::Vector3d massPoint = Eigen::Vector3d::Zero();
+	for (const auto& edge : intersectingEdges)
+	{
+		massPoint += edge.point / intersectingEdges.size();
+	}
+
+	//if ((voxelPosition.x() - (_dimensions.x() / 2)) > 0 &&
+	//	(voxelPosition.y() - (_dimensions.y() / 2)) < 0)
+	////if (intersectingEdges.size() < 3)
+	//{
+	//	std::cout << "Mass Point at initialization: " << std::endl;
+	//	std::cout << massPoint - voxelPosition << std::endl;
+	//	std::cout << "Voxel Position: " << std::endl << voxelPosition - (_dimensions.cast<double>() / 2) << std::endl;
+	//	std::cout << "Number valid edges: " << intersectingEdges.size() << std::endl;
+
+	//	if (intersectingEdges.size() > 5)
+	//	{
+	//		std::cout << "Edges of 5 edge voxel: " << std::endl;
+	//		for (const auto& var : intersectingEdges)
+	//		{
+	//			std::cout << "Point: \n" << var.point - voxelPosition << std::endl;
+	//		}
+	//	}
+
+	//}
+
+	// Get force from all corners
+	std::vector<Eigen::Vector3d> forces;
+	forces.reserve(8);
+	for (int x = 0; x <= 1; ++x)
+	{
+		for (int y = 0; y <= 1; ++y)
+		{
+			for (int z = 0; z <= 1; ++z)
+			{
+				Eigen::Vector3d cornerPosition = voxelPosition + Eigen::Vector3d(x, y, z);
+				forces[x + y * 2 + z * 4] = getForceFromCorner(cornerPosition, intersectingEdges);
+			}
+		}
+	}
+
+	//if ((voxelPosition.x() - (_dimensions.x() / 2)) > 0 &&
+	//	(voxelPosition.y() - (_dimensions.y() / 2)) < 0)
+	//{
+	//	std::cout << "Force at first step: " << std::endl;
+	//	std::cout << trilinearInterpolation(forces, massPoint - voxelPosition) << std::endl;
+	//}
+
+	// Move particle with trilinearly interpolated force
+	double thresholdForce = 0.001;
+	int maxSteps = 50;
+	Eigen::Vector3d force;
+	for (int i = 0; i < maxSteps; ++i)
+	{
+		force = trilinearInterpolation(forces, massPoint - voxelPosition);
+		//if (i > 20 && intersectingEdges.size() < 3)
+		//	std::cout << "Force at step " << i << ": " << std::endl << force << std::endl;
+		if ((force.norm()) < thresholdForce)
+			break;
+		massPoint += 0.1 * force;
+		clipPosition(voxelPosition.cast<int>(), massPoint);
+	}
+
+	//if ((voxelPosition.x() - (_dimensions.x() / 2)) > 0 &&
+	//	(voxelPosition.y() - (_dimensions.y() / 2)) < 0)
+	//{
+	//	std::cout << "Masspoint after moving: " << std::endl;
+	//	std::cout << massPoint - voxelPosition << std::endl;
+	//}
+
+	return massPoint;
 }
 
 void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile bool& success, Eigen::Vector3d& result)
@@ -470,17 +581,17 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
 	}
 
 
-	Eigen::Vector3d meanNormal{ 0,0,0 };
-	double similarity = 0;
+	//Eigen::Vector3d meanNormal{ 0,0,0 };
+	//double similarity = 0;
 
-	for (int i = 0; i < intersectingEdges.size(); ++i)
-	{
-		meanNormal += intersectingEdges[i].normal / intersectingEdges.size();
-	}
-	for (int i = 0; i < intersectingEdges.size(); ++i)
-	{
-		similarity += intersectingEdges[i].normal.dot(meanNormal) / intersectingEdges.size();
-	}
+	//for (int i = 0; i < intersectingEdges.size(); ++i)
+	//{
+	//	meanNormal += intersectingEdges[i].normal / intersectingEdges.size();
+	//}
+	//for (int i = 0; i < intersectingEdges.size(); ++i)
+	//{
+	//	similarity += intersectingEdges[i].normal.dot(meanNormal) / intersectingEdges.size();
+	//}
 
 	Eigen::MatrixXd A(intersectingEdges.size(), 3);
 	Eigen::VectorXd b(intersectingEdges.size());
@@ -488,11 +599,14 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
 	// replace with Schmitz Particle Approximation
 
 
-	//calculateQEF(intersectingEdges, A, b);
+	calculateQEF(intersectingEdges, A, b);
 
 	// Solve the linear system Ax=b using Eigen's solver 
 	//result = A.fullPivHouseholderQr().solve(b);
-	result = voxelIndex.cast<double>() + Eigen::Vector3d(0.5, 0.5, 0.5);
+
+	Eigen::Vector3d voxelPosition = voxelIndex.cast<double>();
+	result = schmitzParticleApproximation(voxelPosition, intersectingEdges);
+	//result = voxelIndex.cast<double>() + Eigen::Vector3d(0.5, 0.5, 0.5);
 	success = true;
 
 	//if (similarity >= 1 - 1e-4)
@@ -533,7 +647,7 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
 	//    std::cout << "Voxel with large distance: \n" << voxelIndex << std::endl;
 	//    //success = false;
 	//}
-	clipPosition(voxelIndex, result);
+	//clipPosition(voxelIndex, result);
 
 	//Eigen::Vector3d result = voxelIndex.cast<double>();
 	////Eigen::Vector3d result{ voxelIndex.x() + 0.5,  voxelIndex.y() + 0.5,  voxelIndex.z() + 0.5 };
@@ -543,7 +657,6 @@ void DualContouring::findVertexInVoxel(Eigen::Vector3i& voxelIndex, volatile boo
 	//    return std::make_tuple(true, result);
 	//}
 }
-
 
 void DualContouring::clipPosition(Eigen::Vector3i voxelIndex, Eigen::Vector3d& pos)
 {

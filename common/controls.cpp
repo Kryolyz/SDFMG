@@ -116,4 +116,5 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	std::cout << "View Position: " << position.x << " " << position.y << " " << position.z << std::endl;
 	std::cout << "View Direction: " << _direction.x << " " << _direction.y << " " << _direction.z << std::endl;
 	viewDistance += yoffset;
+	viewDistance = clamp(viewDistance, 0.1f, 300.0f);
 }

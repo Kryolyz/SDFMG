@@ -228,7 +228,7 @@ int main(void)
     glDepthFunc(GL_LESS);
     //glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -248,7 +248,7 @@ int main(void)
     std::vector<unsigned int> triangle_buffer_data;
 
     // Make mesh
-    Eigen::Vector3i dimensions{ 200, 200, 200 };
+    Eigen::Vector3i dimensions{ 100, 100, 100 };
     DualContouring dualContouring{ dimensions };
     dualContouring.execute();
     std::tie(g_vertex_buffer_data, g_color_buffer_data, triangle_buffer_data) = dualContouring.getData();

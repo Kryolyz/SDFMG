@@ -31,7 +31,7 @@ private:
 	};
 
 	double sdf(Eigen::Vector3d);
-	Eigen::Vector3d getNormalFromGradient(Eigen::Vector3d pos, Eigen::Vector3d& normal);
+	void getNormalFromGradient(Eigen::Vector3d pos, Eigen::Vector3d& normal);
 
 	// mapping voxel position to vertex indices in _vertices
 	std::map<unsigned int, unsigned int> _vertexIndices;
@@ -48,7 +48,7 @@ private:
 	// find position of zero along a sign change
 	float findZero(float a, float b);
 	// Find the zero crossing along an edge
-	Eigen::Vector3d findZeroCrossing(Eigen::Vector3d, Eigen::Vector3d, double, double);
+	Eigen::Vector3d findZeroCrossing(Eigen::Vector3d, Eigen::Vector3d, double);
 	// fill vertex and color buffer
 	void fillBuffers();
 	// fill _vertices
@@ -67,9 +67,11 @@ private:
 	// Trinilearly interpolate forces of voxel corners
 	void getForceOnPoint(std::vector<Eigen::Vector3d>& cornerForces, Eigen::Vector3i& voxelIndex, Eigen::Vector3d& position);
 	// Perform Schmitz Particle Approximation to find optimal vertex position in voxel
-	Eigen::Vector3d schmitzParticleApproximation(Eigen::Vector3d& position, std::vector<EdgeData> intesectingEdges);
-	// Finds average position of surrouding voxels to fix a problematic position
-	Eigen::Vector3d averagePositionSurrouding(Eigen::Vector3i voxelIndex);
+	Eigen::Vector3d schmitzParticleApproximation(Eigen::Vector3d& position, std::vector<EdgeData>& intesectingEdges);
+	// Get force from one single corner for Schmitz Particle Approximation
+	Eigen::Vector3d getForceFromCorner(Eigen::Vector3d& position, std::vector<EdgeData>& intersectingEdges);
+	// Interpolation of corner forces from getForceFromCorners
+	Eigen::Vector3d trilinearInterpolation(const std::vector<Eigen::Vector3d>& corners, const Eigen::Vector3d& point);
 	// get whether voxel contains vertex and if yes, get vertex position
 	void findVertexInVoxel(Eigen::Vector3i&, volatile bool&, Eigen::Vector3d&);
 	// Clip position into boundaries of a voxel
